@@ -4,3 +4,19 @@ server:
 spring:
   application:
     name: gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: capteur-service
+          uri: lb://CAPTEUR-SERVICE
+          predicates:
+            - Path=/api/capteurs/**
+
+        - id: irrigation-service
+          uri: lb://IRRIGATION-SERVICE
+          predicates:
+            - Path=/api/irrigation/**
