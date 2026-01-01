@@ -4,6 +4,23 @@ server:
 spring:
   application:
     name: capteur-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/capteur_db
+    username: root
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 
 eureka:
   client:
