@@ -1,5 +1,6 @@
 package com.systeme.irrigation.irrigation_service.services;
 
+import com.systeme.irrigation.irrigation_service.dto.CapteurDTO;
 import com.systeme.irrigation.irrigation_service.dto.MesureDTO;
 import com.systeme.irrigation.irrigation_service.feign.CapteurClient;
 import lombok.RequiredArgsConstructor;
@@ -12,5 +13,9 @@ public class TestCapteurService {
 
     public MesureDTO test(Long capteurId) {
         return capteurClient.getDerniereMesure(capteurId);
+    }
+
+    public CapteurDTO testCapteur(Long capteurId) {
+        return  capteurClient.getCapteur(capteurId);
     }
 }

@@ -1,5 +1,6 @@
 package com.systeme.irrigation.irrigation_service;
 
+import com.systeme.irrigation.irrigation_service.dto.CapteurDTO;
 import com.systeme.irrigation.irrigation_service.dto.MesureDTO;
 import com.systeme.irrigation.irrigation_service.services.TestCapteurService;
 import lombok.RequiredArgsConstructor;
@@ -17,5 +18,9 @@ public class TestCapteurController {
     @GetMapping("/{capteurId}")
     public MesureDTO test(@PathVariable Long capteurId) {
         return testCapteurService.test(capteurId);
+    }
+    @GetMapping("/find/{capteurId}")
+    public CapteurDTO testCapteur(@PathVariable Long capteurId) {
+        return testCapteurService.testCapteur(capteurId);
     }
 }
