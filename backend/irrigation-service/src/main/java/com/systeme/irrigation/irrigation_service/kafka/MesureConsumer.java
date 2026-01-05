@@ -1,8 +1,10 @@
 package com.systeme.irrigation.irrigation_service.kafka;
 
 import com.systeme.irrigation.irrigation_service.Entities.ActionIrrigation;
+import com.systeme.irrigation.irrigation_service.Entities.MesureCourante;
 import com.systeme.irrigation.irrigation_service.Entities.Parcelle;
 import com.systeme.irrigation.irrigation_service.Repositories.ActionIrrigationRepository;
+import com.systeme.irrigation.irrigation_service.Repositories.MesureCouranteRepository;
 import com.systeme.irrigation.irrigation_service.Repositories.ParcelleRepository;
 import com.systeme.irrigation.irrigation_service.dto.CapteurDTO;
 import com.systeme.irrigation.irrigation_service.dto.MesureDTO;
@@ -23,6 +25,7 @@ public class MesureConsumer {
     private final ParcelleRepository parcelleRepo;
     private final ActionIrrigationRepository actionRepo;
     private final CapteurClient capteurClient;
+    private final MesureCouranteRepository mesureRepo;
 
     // ==================================================
     // CONSUMER KAFKA
@@ -43,6 +46,15 @@ public class MesureConsumer {
         Parcelle parcelle = parcelleRepo
                 .findByNom(capteur.getLocalisation())
                 .orElseThrow(() -> new RuntimeException("Parcelle inconnue"));
+
+        MesureCourante mc = new MesureCourante();
+        mc.setParcelleId(parcelle.getId());
+        mc.setTypeCapteur(capteur.getType());
+        mc.setValeur(mesure.getValeur());
+        mc.setUnite(mesure.getUnite());
+        mc.setDateMesure(mesure.getDateMesure());
+
+        mesureRepo.save(mc);
 
         double valeur = mesure.getValeur();
 

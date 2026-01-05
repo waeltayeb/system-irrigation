@@ -1,4 +1,4 @@
-package com.systeme.irrigation.irrigation_service;
+package com.systeme.irrigation.irrigation_service.Controllers;
 
 import com.systeme.irrigation.irrigation_service.dto.CapteurDTO;
 import com.systeme.irrigation.irrigation_service.dto.MesureDTO;

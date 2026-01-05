@@ -14,4 +14,8 @@ public interface ActionIrrigationRepository extends JpaRepository<ActionIrrigati
 
     List<ActionIrrigation> findByStatut(String statut);
 
+    List<ActionIrrigation> findByParcelleId(Long parcelleId);
+
+
+
 }
