@@ -4,6 +4,29 @@ server:
 spring:
   application:
     name: irrigation-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/irrigation_db
+    username: root
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: irrigation-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.systeme.irrigation.irrigation_service.dto.MesureDTO
+        spring.json.trusted.packages: "*"
 
 eureka:
   client:
