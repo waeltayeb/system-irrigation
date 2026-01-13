@@ -1,0 +1,213 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Nouvelle Parcelle</h1>
+          <p class="text-gray-600 mt-2">Ajouter une nouvelle zone d'irrigation au système</p>
+        </div>
+        <a routerLink="/parcelles" class="text-blue-600 hover:text-blue-800 flex items-center">
+          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Retour aux parcelles
+        </a>
+      </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    <div *ngIf="successMessage" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-green-800 font-medium">{{ successMessage }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-red-800 font-medium">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <form [formGroup]="parcelleForm" (ngSubmit)="onSubmit()" class="bg-white shadow-lg rounded-xl p-6 md:p-8">
+      
+      <!-- Nom de la parcelle -->
+      <div class="mb-6">
+        <label for="nom" class="block text-sm font-medium text-gray-700 mb-2">
+          Nom de la parcelle *
+        </label>
+        <input
+          type="text"
+          id="nom"
+          formControlName="nom"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          placeholder="Ex: Parcelle Nord, Zone A..."
+        >
+        <div *ngIf="f['nom'].touched && f['nom'].invalid" class="mt-2 text-sm text-red-600">
+          <div *ngIf="f['nom'].errors?.['required']">Le nom est requis</div>
+          <div *ngIf="f['nom'].errors?.['minlength']">Minimum 2 caractères</div>
+          <div *ngIf="f['nom'].errors?.['maxlength']">Maximum 100 caractères</div>
+        </div>
+      </div>
+
+      <!-- Superficie -->
+      <div class="mb-8">
+        <label for="superficie" class="block text-sm font-medium text-gray-700 mb-2">
+          Superficie (hectares) *
+        </label>
+        <div class="relative">
+          <input
+            type="number"
+            id="superficie"
+            formControlName="superficie"
+            step="0.01"
+            min="0.01"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            placeholder="Ex: 2.5"
+          >
+          <div class="absolute right-3 top-3 text-gray-500">ha</div>
+        </div>
+        <div *ngIf="f['superficie'].touched && f['superficie'].invalid" class="mt-2 text-sm text-red-600">
+          <div *ngIf="f['superficie'].errors?.['required']">La superficie est requise</div>
+          <div *ngIf="f['superficie'].errors?.['min']">Minimum 0.01 hectare</div>
+          <div *ngIf="f['superficie'].errors?.['max']">Maximum 10000 hectares</div>
+        </div>
+      </div>
+
+      <!-- Seuils d'humidité -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Seuils d'humidité du sol</h3>
+        
+        <!-- Validation des seuils -->
+        <div *ngIf="parcelleForm.errors?.['invalidThresholds'] && parcelleForm.touched" 
+             class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-700 text-sm">Le seuil maximum doit être supérieur au seuil minimum</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Seuil minimum -->
+          <div>
+            <label for="seuilHumiditeMin" class="block text-sm font-medium text-gray-700 mb-2">
+              Seuil minimum (%) *
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                id="seuilHumiditeMin"
+                formControlName="seuilHumiditeMin"
+                min="0"
+                max="100"
+                step="0.1"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Ex: 30"
+              >
+              <div class="absolute right-3 top-3 text-gray-500">%</div>
+            </div>
+            <div *ngIf="f['seuilHumiditeMin'].touched && f['seuilHumiditeMin'].invalid" class="mt-2 text-sm text-red-600">
+              <div *ngIf="f['seuilHumiditeMin'].errors?.['required']">Le seuil minimum est requis</div>
+              <div *ngIf="f['seuilHumiditeMin'].errors?.['min']">Minimum 0%</div>
+              <div *ngIf="f['seuilHumiditeMin'].errors?.['max']">Maximum 100%</div>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Humidité minimale avant déclenchement de l'irrigation</p>
+          </div>
+
+          <!-- Seuil maximum -->
+          <div>
+            <label for="seuilHumiditeMax" class="block text-sm font-medium text-gray-700 mb-2">
+              Seuil maximum (%) *
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                id="seuilHumiditeMax"
+                formControlName="seuilHumiditeMax"
+                min="0"
+                max="100"
+                step="0.1"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Ex: 70"
+              >
+              <div class="absolute right-3 top-3 text-gray-500">%</div>
+            </div>
+            <div *ngIf="f['seuilHumiditeMax'].touched && f['seuilHumiditeMax'].invalid" class="mt-2 text-sm text-red-600">
+              <div *ngIf="f['seuilHumiditeMax'].errors?.['required']">Le seuil maximum est requis</div>
+              <div *ngIf="f['seuilHumiditeMax'].errors?.['min']">Minimum 0%</div>
+              <div *ngIf="f['seuilHumiditeMax'].errors?.['max']">Maximum 100%</div>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Humidité maximale avant arrêt de l'irrigation</p>
+          </div>
+        </div>
+
+        <!-- Aperçu de la plage -->
+        <div *ngIf="f['seuilHumiditeMin'].value && f['seuilHumiditeMax'].value && !parcelleForm.errors?.['invalidThresholds']" 
+             class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 class="font-medium text-blue-800 mb-2">Plage d'humidité configurée :</h4>
+          <div class="flex items-center space-x-4">
+            <div class="flex-1">
+              <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                     [style.width.%]="f['seuilHumiditeMax'].value">
+                </div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-600 mt-1">
+                <span>0%</span>
+                <span class="text-blue-600 font-medium">{{ f['seuilHumiditeMin'].value }}%</span>
+                <span class="text-green-600 font-medium">{{ f['seuilHumiditeMax'].value }}%</span>
+                <span>100%</span>
+              </div>
+            </div>
+            <div class="text-center">
+              <span class="text-2xl font-bold text-blue-700">{{ getRecommendedHumidity() }}%</span>
+              <p class="text-xs text-blue-600">Humidité cible</p>
+            </div>
+          </div>
+          <p class="mt-2 text-sm text-blue-700">
+            L'irrigation se déclenchera lorsque l'humidité sera inférieure à {{ f['seuilHumiditeMin'].value }}% 
+            et s'arrêtera à {{ f['seuilHumiditeMax'].value }}%.
+          </p>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+          [disabled]="isLoading"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          [disabled]="parcelleForm.invalid || isLoading"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        >
+          <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ isLoading ? 'Création en cours...' : 'Créer la parcelle' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Informations API -->
+    <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+      <h4 class="font-medium text-gray-700 mb-2">Informations API :</h4>
+      <div class="text-sm text-gray-600 space-y-1">
+        <p><span class="font-mono font-medium">Endpoint :</span> POST /api/parcelles</p>
+        <p><span class="font-mono font-medium">Modèle :</span> id (auto), nom, superficie, seuilHumiditeMin, seuilHumiditeMax</p>
+        <p><span class="font-mono font-medium">Format :</span> JSON</p>
+      </div>
+    </div>
+  </div>
+</div>

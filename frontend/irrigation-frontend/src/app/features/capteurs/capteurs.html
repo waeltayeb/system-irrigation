@@ -1,0 +1,345 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Gestion des Capteurs</h1>
+          <p class="text-gray-600 mt-2">Surveillez et gérez tous vos capteurs IoT</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+          <a 
+            routerLink="/capteurs/create"
+            class="inline-flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouveau Capteur
+          </a>
+        </div>
+      </div>
+    </div>
+
+<!-- Alertes -->
+<div *ngIf="alerts.length > 0" class="mb-6">
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+    <h3 class="text-red-800 font-semibold mb-2">Alertes détectées</h3>
+    <div *ngFor="let alert of alerts" class="text-sm text-red-700">
+      • {{ alert }}
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-blue-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">📡</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Total capteurs</p>
+            <p class="text-2xl font-bold">{{ stats.total }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-green-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">✅</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Capteurs actifs</p>
+            <p class="text-2xl font-bold">{{ stats.actifs }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-red-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">❌</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Capteurs inactifs</p>
+            <p class="text-2xl font-bold">{{ stats.inactifs }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-purple-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">📊</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Types différents</p>
+            <p class="text-2xl font-bold">{{ stats.typeCount }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Répartition par type -->
+    <div class="bg-white rounded-xl shadow p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition par type</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div *ngFor="let type of getTypes()" 
+             class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div class="flex items-center">
+            <span class="text-2xl mr-3">{{ getTypeIcon(type) }}</span>
+            <div>
+              <p class="font-medium text-gray-800">{{ type }}</p>
+              <p class="text-sm text-gray-500">{{ stats.parType[type] }} capteur(s)</p>
+            </div>
+          </div>
+          <span class="text-lg font-bold">{{ stats.parType[type] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre de recherche et filtres -->
+    <div class="bg-white rounded-xl shadow mb-6 p-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+        <div class="relative flex-1 max-w-md">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Rechercher par localisation ou ID..."
+            class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <!-- Filtre par type -->
+          <select [(ngModel)]="typeFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">Tous les types</option>
+            <option [value]="TypeCapteur.HUMIDITE">Humidité</option>
+            <option [value]="TypeCapteur.TEMPERATURE">Température</option>
+         
+          </select>
+          
+          <!-- Filtre par état -->
+          <select [(ngModel)]="etatFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">Tous les états</option>
+            <option value="ACTIF">Actif</option>
+            <option value="INACTIF">Inactif</option>
+            <option value="MAINTENANCE">Maintenance</option>
+          </select>
+          
+          <!-- Bouton reset -->
+          <button 
+            (click)="resetFilters()"
+            class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+      
+      <div class="mt-4 text-sm text-gray-500">
+        {{ filteredCapteurs.length }} capteur(s) trouvé(s)
+      </div>
+    </div>
+
+    <!-- Tableau des capteurs -->
+    <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+      <!-- En-tête du tableau -->
+      <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+          <div class="col-span-3">Type & Localisation</div>
+          <div class="col-span-2">ID</div>
+          <div class="col-span-2">État</div>
+          <div class="col-span-3">Installation</div>
+          <div class="col-span-2 text-right">Actions</div>
+        </div>
+      </div>
+
+      <!-- Message de chargement -->
+      <div *ngIf="isLoading">
+  Chargement...
+</div>
+  <!-- Message si aucun capteur -->
+<div *ngIf="!isLoading && filteredCapteurs.length === 0" class="p-8 text-center">
+  <span class="text-4xl mb-4 block">📡</span>
+        <h3 class="text-lg font-medium text-gray-900">Aucun capteur trouvé</h3>
+        <p class="text-gray-600 mt-1">Commencez par créer votre premier capteur</p>
+        <a routerLink="/capteurs/create" class="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">
+          Créer un capteur →
+        </a>
+</div>
+
+
+
+      <!-- Liste des capteurs -->
+      <div *ngIf="!isLoading && capteurs.length > 0">
+        <!-- Capteurs -->
+        <div *ngFor="let capteur of paginatedCapteurs" 
+             class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition">
+          <div class="grid grid-cols-12 gap-4 items-center">
+            <!-- Type et Localisation -->
+            <div class="col-span-3">
+              <div class="flex items-center">
+                <span class="text-2xl mr-3">{{ getTypeIcon(capteur.type) }}</span>
+                <div>
+                  <h3 class="font-medium text-gray-900">{{ capteur.type }}</h3>
+                  <p class="text-sm text-gray-500">{{ capteur.localisation }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ID -->
+            <div class="col-span-2">
+              <div class="text-gray-600 font-mono">#{{ capteur.id }}</div>
+            </div>
+
+            <!-- État -->
+            <div class="col-span-2">
+              <span [class]="'px-3 py-1 rounded-full text-xs font-medium ' + getEtatColor(capteur.etat)">
+                {{ capteur.etat }}
+              </span>
+            </div>
+
+            <!-- Installation -->
+            <div class="col-span-3">
+              <div class="space-y-1">
+                <div class="text-gray-900">
+                  {{ capteur.dateInstallation | date:'dd/MM/yyyy' }}
+                </div>
+                <div class="text-sm text-gray-500">
+                  Il y a {{ getDaysSinceInstallation(capteur.dateInstallation) }} jours
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-span-2 text-right">
+              <div class="flex justify-end space-x-2">
+                <button
+                  (click)="deleteCapteur(capteur.id)"
+                  class="px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition"
+                  title="Voir les détails"
+                >
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Supprimer
+                </button>
+                <button
+                  (click)="editCapteur(capteur.id)"
+                  class="px-3 py-1.5 text-sm bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-medium transition"
+                  title="Modifier"
+                >
+                  <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  Éditer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Affichage de <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+              à <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, filteredCapteurs.length) }}</span>
+              sur <span class="font-medium">{{ filteredCapteurs.length }}</span> capteurs
+            </div>
+            <div class="flex space-x-2">
+              <button
+                (click)="previousPage()"
+                [disabled]="currentPage === 1"
+                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                ← Précédent
+              </button>
+              
+              <div class="flex items-center space-x-1">
+                <span *ngFor="let page of [].constructor(totalPages); let i = index">
+                  <button
+                    *ngIf="isPageVisible(i)"
+                    (click)="goToPage(i + 1)"
+                    [class]="'w-8 h-8 rounded-lg ' + (currentPage === i + 1 ? 
+                    'bg-blue-600 text-white' : 'border border-gray-300 hover:bg-gray-50')"
+                  >
+                    {{ i + 1 }}
+                  </button>
+                  <span *ngIf="shouldShowEllipsis(i)" class="px-2">...</span>
+                </span>
+              </div>
+              
+              <button
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carte de synthèse -->
+    <div *ngIf="!isLoading && capteurs.length > 0" class="mt-8 bg-white rounded-xl shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">État du parc de capteurs</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-medium text-gray-700 mb-3">Par état</h4>
+          <div class="space-y-3">
+            <div *ngFor="let etat of getEtats()">
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600">{{ etat }}</span>
+                <span class="text-sm font-medium">{{ getCountByEtat(etat) }}</span>
+              </div>
+              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div [class]="'h-full rounded-full ' + 
+                             (etat === 'ACTIF' ? 'bg-green-500' : 
+                              etat === 'INACTIF' ? 'bg-red-500' : 'bg-yellow-500')"
+                     [style.width.%]="getPercentageByEtat(etat)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="font-medium text-gray-700 mb-3">Par type</h4>
+          <div class="space-y-3">
+            <div *ngFor="let type of getTypes()">
+              <div class="flex justify-between mb-1">
+                <div class="flex items-center">
+                  <span class="mr-2">{{ getTypeIcon(type) }}</span>
+                  <span class="text-sm text-gray-600">{{ type }}</span>
+                </div>
+                <span class="text-sm font-medium">{{ stats.parType[type] }}</span>
+              </div>
+              <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div [class]="'h-full rounded-full ' + getTypeColor(type).split(' ')[0]"
+                     [style.width.%]="getPercentageByType(type)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+  </div>
+</div>

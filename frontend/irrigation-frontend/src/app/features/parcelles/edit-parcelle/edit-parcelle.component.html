@@ -1,0 +1,314 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <span *ngIf="isLoadingParcelle">Chargement...</span>
+            <span *ngIf="!isLoadingParcelle && parcelleOriginal">Modifier la parcelle</span>
+            <span *ngIf="!isLoadingParcelle && !parcelleOriginal">Parcelle non trouvée</span>
+          </h1>
+          <p *ngIf="parcelleOriginal" class="text-gray-600 mt-2">
+            Modifier les informations de la parcelle #{{ parcelleId }}
+          </p>
+        </div>
+        <a routerLink="/parcelles" class="text-blue-600 hover:text-blue-800 flex items-center">
+          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Retour aux parcelles
+        </a>
+      </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    <div *ngIf="successMessage" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-green-800 font-medium">{{ successMessage }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-red-800 font-medium">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Chargement -->
+    <div *ngIf="isLoadingParcelle" class="bg-white rounded-xl shadow p-8 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-600">Chargement de la parcelle...</p>
+    </div>
+
+    <!-- Parcelle non trouvée -->
+    <div *ngIf="!isLoadingParcelle && !parcelleOriginal" class="bg-white rounded-xl shadow p-8 text-center">
+      <span class="text-4xl mb-4 block">❌</span>
+      <h3 class="text-lg font-medium text-gray-900">Parcelle non trouvée</h3>
+      <p class="text-gray-600 mt-1">La parcelle #{{ parcelleId }} n'existe pas ou a été supprimée</p>
+      <a routerLink="/parcelles" class="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">
+        Retour à la liste des parcelles →
+      </a>
+    </div>
+
+    <!-- Formulaire d'édition -->
+    <div *ngIf="!isLoadingParcelle && parcelleOriginal">
+      <!-- Indicateur de modifications -->
+      <!-- Indicateur de modifications -->
+<div *ngIf="isFormModified" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+  <div class="flex items-center">
+    <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+    </svg>
+    <div>
+      <p class="text-yellow-800 font-medium">Modifications non enregistrées</p>
+      <p class="text-yellow-700 text-sm mt-1">
+        Vous avez modifié {{ getModifiedFieldsCount() }} champ(s)
+      </p>
+    </div>
+  </div>
+</div>
+      <!-- Formulaire -->
+      <form [formGroup]="parcelleForm" (ngSubmit)="onSubmit()" class="bg-white shadow-lg rounded-xl p-6 md:p-8">
+        <!-- Informations parcelle -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 class="font-medium text-gray-700 mb-2">Informations de la parcelle</h4>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500">ID :</span>
+              <span class="font-mono ml-2 font-medium">{{ parcelleId }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Statut :</span>
+              <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Nom de la parcelle -->
+        <div class="mb-6">
+          <label for="nom" class="block text-sm font-medium text-gray-700 mb-2">
+            Nom de la parcelle *
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              id="nom"
+              formControlName="nom"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="Ex: Parcelle Nord, Zone A..."
+            />
+            <div *ngIf="getFieldChange('nom').changed" 
+                 class="absolute right-3 top-3 text-xs text-blue-600 font-medium">
+              Modifié
+            </div>
+          </div>
+          <div *ngIf="f['nom'].touched && f['nom'].invalid" class="mt-2 text-sm text-red-600">
+            <div *ngIf="f['nom'].errors?.['required']">Le nom est requis</div>
+            <div *ngIf="f['nom'].errors?.['minlength']">Minimum 2 caractères</div>
+            <div *ngIf="f['nom'].errors?.['maxlength']">Maximum 100 caractères</div>
+          </div>
+          <div *ngIf="getFieldChange('nom').changed" class="mt-2 text-xs text-gray-500">
+            Ancien nom: <span class="font-medium">{{ getFieldChange('nom').original }}</span>
+          </div>
+        </div>
+
+        <!-- Superficie -->
+        <div class="mb-8">
+          <label for="superficie" class="block text-sm font-medium text-gray-700 mb-2">
+            Superficie (hectares) *
+          </label>
+          <div class="relative">
+            <input
+              type="number"
+              id="superficie"
+              formControlName="superficie"
+              step="0.01"
+              min="0.01"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="Ex: 2.5"
+            />
+            <div class="absolute right-10 top-3 text-gray-500">ha</div>
+            <div *ngIf="getFieldChange('superficie').changed" 
+                 class="absolute right-3 top-3 text-xs text-blue-600 font-medium">
+              Modifié
+            </div>
+          </div>
+          <div *ngIf="f['superficie'].touched && f['superficie'].invalid" class="mt-2 text-sm text-red-600">
+            <div *ngIf="f['superficie'].errors?.['required']">La superficie est requise</div>
+            <div *ngIf="f['superficie'].errors?.['min']">Minimum 0.01 hectare</div>
+            <div *ngIf="f['superficie'].errors?.['max']">Maximum 10000 hectares</div>
+          </div>
+          <div *ngIf="getFieldChange('superficie').changed" class="mt-2 text-xs text-gray-500">
+            Ancienne superficie: <span class="font-medium">{{ getFieldChange('superficie').original }} ha</span>
+          </div>
+        </div>
+
+        <!-- Seuils d'humidité -->
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Seuils d'humidité du sol</h3>
+          
+          <!-- Validation des seuils -->
+          <div *ngIf="parcelleForm.errors?.['invalidThresholds'] && parcelleForm.touched" 
+               class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-700 text-sm">Le seuil maximum doit être supérieur au seuil minimum</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Seuil minimum -->
+            <div>
+              <label for="seuilHumiditeMin" class="block text-sm font-medium text-gray-700 mb-2">
+                Seuil minimum (%) *
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  id="seuilHumiditeMin"
+                  formControlName="seuilHumiditeMin"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  placeholder="Ex: 30"
+                />
+                <div class="absolute right-10 top-3 text-gray-500">%</div>
+                <div *ngIf="getFieldChange('seuilHumiditeMin').changed" 
+                     class="absolute right-3 top-3 text-xs text-blue-600 font-medium">
+                  Modifié
+                </div>
+              </div>
+              <div *ngIf="f['seuilHumiditeMin'].touched && f['seuilHumiditeMin'].invalid" class="mt-2 text-sm text-red-600">
+                <div *ngIf="f['seuilHumiditeMin'].errors?.['required']">Le seuil minimum est requis</div>
+                <div *ngIf="f['seuilHumiditeMin'].errors?.['min']">Minimum 0%</div>
+                <div *ngIf="f['seuilHumiditeMin'].errors?.['max']">Maximum 100%</div>
+              </div>
+              <p class="mt-2 text-xs text-gray-500">Humidité minimale avant déclenchement de l'irrigation</p>
+              <div *ngIf="getFieldChange('seuilHumiditeMin').changed" class="mt-1 text-xs text-gray-500">
+                Ancien seuil: <span class="font-medium">{{ getFieldChange('seuilHumiditeMin').original }}%</span>
+              </div>
+            </div>
+
+            <!-- Seuil maximum -->
+            <div>
+              <label for="seuilHumiditeMax" class="block text-sm font-medium text-gray-700 mb-2">
+                Seuil maximum (%) *
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  id="seuilHumiditeMax"
+                  formControlName="seuilHumiditeMax"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  placeholder="Ex: 70"
+                />
+                <div class="absolute right-10 top-3 text-gray-500">%</div>
+                <div *ngIf="getFieldChange('seuilHumiditeMax').changed" 
+                     class="absolute right-3 top-3 text-xs text-blue-600 font-medium">
+                  Modifié
+                </div>
+              </div>
+              <div *ngIf="f['seuilHumiditeMax'].touched && f['seuilHumiditeMax'].invalid" class="mt-2 text-sm text-red-600">
+                <div *ngIf="f['seuilHumiditeMax'].errors?.['required']">Le seuil maximum est requis</div>
+                <div *ngIf="f['seuilHumiditeMax'].errors?.['min']">Minimum 0%</div>
+                <div *ngIf="f['seuilHumiditeMax'].errors?.['max']">Maximum 100%</div>
+              </div>
+              <p class="mt-2 text-xs text-gray-500">Humidité maximale avant arrêt de l'irrigation</p>
+              <div *ngIf="getFieldChange('seuilHumiditeMax').changed" class="mt-1 text-xs text-gray-500">
+                Ancien seuil: <span class="font-medium">{{ getFieldChange('seuilHumiditeMax').original }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aperçu de la plage -->
+          <div *ngIf="f['seuilHumiditeMin'].value && f['seuilHumiditeMax'].value && !parcelleForm.errors?.['invalidThresholds']" 
+               class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 class="font-medium text-blue-800 mb-2">Nouvelle plage d'humidité :</h4>
+            <div class="flex items-center space-x-4">
+              <div class="flex-1">
+                <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                       [style.width.%]="f['seuilHumiditeMax'].value">
+                  </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-600 mt-1">
+                  <span>0%</span>
+                  <span class="text-blue-600 font-medium">{{ f['seuilHumiditeMin'].value }}%</span>
+                  <span class="text-green-600 font-medium">{{ f['seuilHumiditeMax'].value }}%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-blue-700">{{ getRecommendedHumidity() }}%</span>
+                <p class="text-xs text-blue-600">Nouvelle humidité cible</p>
+              </div>
+            </div>
+            <p class="mt-2 text-sm text-blue-700">
+              L'irrigation se déclenchera lorsque l'humidité sera inférieure à {{ f['seuilHumiditeMin'].value }}% 
+              et s'arrêtera à {{ f['seuilHumiditeMax'].value }}%.
+            </p>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+            [disabled]="isLoading"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            (click)="onReset()"
+            [disabled]="!isFormModified || isLoading"
+            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Réinitialiser
+          </button>
+          <button
+            type="submit"
+            [disabled]="parcelleForm.invalid || !isFormModified || isLoading"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isLoading ? 'Mise à jour en cours...' : 'Mettre à jour' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Section danger (suppression) -->
+      <div class="mt-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+        <h3 class="text-lg font-semibold text-red-800 mb-4">Zone de danger</h3>
+        <p class="text-red-700 mb-4">
+          La suppression d'une parcelle est irréversible. Toutes les données associées (irrigations, mesures) seront perdues.
+        </p>
+        <button
+          (click)="deleteParcelle()"
+          class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex items-center"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Supprimer cette parcelle
+        </button>
+      </div>
+
+     
+    </div>
+  </div>
+</div>

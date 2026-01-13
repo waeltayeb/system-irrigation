@@ -1,0 +1,339 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Gestion des Parcelles</h1>
+          <p class="text-gray-600 mt-2">Gérez toutes vos zones d'irrigation</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+          <a
+            routerLink="/parcelles/create"
+            class="inline-flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Nouvelle Parcelle
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-green-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">🌱</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Total parcelles</p>
+            <p class="text-2xl font-bold">{{ parcelles.length }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-blue-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">📏</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Superficie totale</p>
+            <p class="text-2xl font-bold">{{ getTotalSuperficie() }} ha</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">📊</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Humidité moyenne min</p>
+            <p class="text-2xl font-bold">{{ getMoyenneHumiditeMin() }}%</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center">
+          <div class="bg-purple-100 p-3 rounded-lg mr-4">
+            <span class="text-2xl">📈</span>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Humidité moyenne max</p>
+            <p class="text-2xl font-bold">{{ getMoyenneHumiditeMax() }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="bg-white rounded-xl shadow mb-6 p-4">
+      <div
+        class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0"
+      >
+        <div class="relative flex-1 max-w-md">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Rechercher une parcelle par nom..."
+            class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div class="text-sm text-gray-500">
+          {{ filteredParcelles.length }} parcelle(s) trouvée(s)
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau des parcelles -->
+    <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+      <!-- En-tête du tableau -->
+      <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+          <div class="col-span-3">Nom</div>
+          <div class="col-span-2">ID</div>
+          <div class="col-span-2">Superficie</div>
+          <div class="col-span-3">Seuils d'humidité</div>
+          <div class="col-span-2 text-right">Actions</div>
+        </div>
+      </div>
+
+      <!-- Message de chargement -->
+      <div *ngIf="isLoading" class="p-8 text-center">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
+        <p class="mt-2 text-gray-600">Chargement des parcelles...</p>
+      </div>
+
+      <!-- Message si aucune parcelle -->
+      <div *ngIf="!isLoading && parcelles.length === 0" class="p-8 text-center">
+        <span class="text-4xl mb-4 block">🌱</span>
+        <h3 class="text-lg font-medium text-gray-900">Aucune parcelle trouvée</h3>
+        <p class="text-gray-600 mt-1">Commencez par créer votre première parcelle</p>
+        <a
+          routerLink="/parcelles/create"
+          class="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Créer une parcelle →
+        </a>
+      </div>
+
+      <!-- Liste des parcelles -->
+      <div *ngIf="!isLoading && parcelles.length > 0">
+        <!-- Parcelles -->
+        <div
+          *ngFor="let parcelle of paginatedParcelles"
+          class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition"
+        >
+          <div class="grid grid-cols-12 gap-4 items-center">
+            <!-- Nom -->
+            <div class="col-span-3">
+              <h3 class="font-medium text-gray-900">{{ parcelle.nom }}</h3>
+            </div>
+
+            <!-- ID -->
+            <div class="col-span-2">
+              <div class="text-gray-600 font-mono">#{{ parcelle.id }}</div>
+            </div>
+
+            <!-- Superficie -->
+            <div class="col-span-2">
+              <div class="text-gray-900 font-medium">{{ parcelle.superficie }} ha</div>
+            </div>
+
+            <!-- Seuils d'humidité -->
+            <div class="col-span-3">
+              <div class="space-y-2">
+                <div>
+                  <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">Min: {{ parcelle.seuilHumiditeMin }}&percnt;</span>
+                    <span class="text-gray-600">Max: {{ parcelle.seuilHumiditeMax }}&percnt;</span>
+                  </div>
+                  <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                      style="width: 100%"
+                    ></div>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500">
+                  Plage: {{ parcelle.seuilHumiditeMax - parcelle.seuilHumiditeMin }}%
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-span-2 text-right">
+              <div class="flex justify-end space-x-2">
+                <button
+                  (click)="deleteParcelle(parcelle.id)"
+                  class="px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition"
+                  title="Supprimer"
+                >
+                  <svg
+                    class="w-4 h-4 inline-block mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  Supprimer
+                </button>
+                <button
+                  (click)="editParcelle(parcelle.id)"
+                  class="px-3 py-1.5 text-sm bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-medium transition"
+                  title="Modifier"
+                >
+                  <svg
+                    class="w-4 h-4 inline-block mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Éditer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Affichage de
+              <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> à
+              <span class="font-medium">{{
+                Math.min(currentPage * itemsPerPage, filteredParcelles.length)
+              }}</span>
+              sur <span class="font-medium">{{ filteredParcelles.length }}</span> parcelles
+            </div>
+            <div class="flex space-x-2">
+              <button
+                (click)="previousPage()"
+                [disabled]="currentPage === 1"
+                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                ← Précédent
+              </button>
+
+              <div class="flex items-center space-x-1">
+                <span *ngFor="let page of [].constructor(totalPages); let i = index">
+                  <button
+                    *ngIf="Math.abs(currentPage - (i + 1)) <= 2 || i === 0 || i === totalPages - 1"
+                    (click)="goToPage(i + 1)"
+                    [class]="
+                      'w-8 h-8 rounded-lg ' +
+                      (currentPage === i + 1
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-300 hover:bg-gray-50')
+                    "
+                  >
+                    {{ i + 1 }}
+                  </button>
+                  <span
+                    *ngIf="Math.abs(currentPage - (i + 1)) === 3 && i < totalPages - 1"
+                    class="px-2"
+                    >...</span
+                  >
+                </span>
+              </div>
+
+              <button
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carte de synthèse -->
+    <div
+      *ngIf="!isLoading && parcelles.length > 0"
+      class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition des seuils min</h3>
+        <div class="space-y-3">
+          <div *ngFor="let parcelle of parcelles.slice(0, 5)">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">{{ parcelle.nom }}</span>
+              <span class="text-sm font-medium">{{ parcelle.seuilHumiditeMin }}%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-blue-500" [style.width.%]="parcelle.seuilHumiditeMin"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition des seuils max</h3>
+        <div class="space-y-3">
+          <div *ngFor="let parcelle of parcelles.slice(0, 5)">
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">{{ parcelle.nom }}</span>
+              <span class="text-sm font-medium">{{ parcelle.seuilHumiditeMax }}%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-green-500" [style.width.%]="parcelle.seuilHumiditeMax"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+   
+  </div>
+</div>

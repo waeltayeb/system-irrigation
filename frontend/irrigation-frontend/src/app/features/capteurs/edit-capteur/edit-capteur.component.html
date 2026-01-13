@@ -1,0 +1,357 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Modifier le Capteur</h1>
+          <p class="text-gray-600 mt-2" *ngIf="capteur">
+            ID: {{capteur.id}} • Créé le {{capteur.dateInstallation | date:'dd/MM/yyyy'}}
+          </p>
+        </div>
+        <a routerLink="/capteurs" class="text-blue-600 hover:text-blue-800 flex items-center">
+          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Retour aux capteurs
+        </a>
+      </div>
+
+      <!-- État de chargement -->
+      <div *ngIf="isLoadingCapteur" class="mb-6">
+        <div class="flex items-center justify-center p-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+          <span class="text-gray-600">Chargement des données du capteur...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    <div *ngIf="successMessage" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <p class="text-green-800 font-medium">{{ successMessage }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <p class="text-red-800 font-medium">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <form
+      *ngIf="!isLoadingCapteur"
+      [formGroup]="capteurForm"
+      (ngSubmit)="onSubmit()"
+      class="bg-white shadow-lg rounded-xl p-6 md:p-8"
+    >
+      <!-- Type de capteur -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Type de capteur</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let type of typesCapteurs" class="relative">
+            <input
+              type="radio"
+              [id]="'type-' + type"
+              formControlName="type"
+              [value]="type"
+              class="sr-only"
+            />
+            <label
+              [for]="'type-' + type"
+              [class]="
+                'block p-4 border-2 rounded-lg cursor-pointer transition-all ' +
+                (f['type'].value === type
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400')
+              "
+            >
+              <div class="flex items-center">
+                <div class="mr-4">
+                  <span class="text-3xl">{{ getTypeIcon(type) }}</span>
+                </div>
+                <div>
+                  <h4 class="font-medium text-gray-900">{{ type }}</h4>
+                  <p class="text-sm text-gray-600 mt-1">{{ getTypeDescription(type) }}</p>
+                </div>
+                <div class="ml-auto">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center">
+                    <div
+                      *ngIf="f['type'].value === type"
+                      class="w-3 h-3 rounded-full bg-blue-600"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="f['type'].touched && f['type'].invalid" class="mt-2 text-sm text-red-600">
+          <div *ngIf="f['type'].errors?.['required']">Le type de capteur est requis</div>
+        </div>
+      </div>
+
+      <!-- Localisation -->
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Localisation</h3>
+
+        <div *ngIf="isLoadingParcelles; else parcellesLoaded">
+          <div class="flex items-center">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+            <span class="text-gray-600">Chargement des parcelles...</span>
+          </div>
+        </div>
+
+        <ng-template #parcellesLoaded>
+          <div *ngIf="parcelles.length === 0" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-yellow-800">Aucune parcelle disponible. Créez d'abord une parcelle.</p>
+          </div>
+
+          <div *ngIf="parcelles.length > 0">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Sélectionnez une parcelle *
+            </label>
+
+            <div class="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto p-1">
+              <div *ngFor="let parcelle of parcelles" class="relative">
+                <input
+                  type="radio"
+                  [id]="'parcelle-' + parcelle.id"
+                  formControlName="localisation"
+                  [value]="parcelle.nom"
+                  class="sr-only"
+                />
+                <label
+                  [for]="'parcelle-' + parcelle.id"
+                  [class]="
+                    'block p-4 border rounded-lg cursor-pointer transition-all ' +
+                    (f['localisation'].value === parcelle.nom
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 hover:bg-gray-50')
+                  "
+                >
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="font-medium text-gray-900">{{ parcelle.nom }}</h4>
+                      <div class="mt-1 text-sm text-gray-600 space-y-1">
+                        <div class="flex items-center">
+                          <svg
+                            class="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          <span>ID: {{ parcelle.id }}</span>
+                        </div>
+                        <div class="flex items-center">
+                          <svg
+                            class="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"
+                            />
+                          </svg>
+                          <span>{{ parcelle.superficie }} hectares</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center">
+                        <div
+                          *ngIf="f['localisation'].value === parcelle.nom"
+                          class="w-3 h-3 rounded-full bg-blue-600"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div
+              *ngIf="f['localisation'].touched && f['localisation'].invalid"
+              class="mt-2 text-sm text-red-600"
+            >
+              <div *ngIf="f['localisation'].errors?.['required']">La localisation est requise</div>
+            </div>
+
+            <div class="mt-4 text-sm text-gray-500">
+              {{ parcelles.length }} parcelle(s) disponible(s)
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- État et Date -->
+      <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- État -->
+        <div>
+          <label for="etat" class="block text-sm font-medium text-gray-700 mb-2">
+            État du capteur *
+          </label>
+          <select
+            id="etat"
+            formControlName="etat"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition"
+          >
+            <option *ngFor="let etat of etats" [value]="etat">{{ etat }}</option>
+          </select>
+          <div *ngIf="f['etat'].touched && f['etat'].invalid" class="mt-2 text-sm text-red-600">
+            <div *ngIf="f['etat'].errors?.['required']">L'état est requis</div>
+          </div>
+        </div>
+
+        <!-- Date d'installation -->
+        <div>
+          <label for="dateInstallation" class="block text-sm font-medium text-gray-700 mb-2">
+            Date d'installation *
+          </label>
+          <input
+            type="date"
+            id="dateInstallation"
+            formControlName="dateInstallation"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          />
+          <div
+            *ngIf="f['dateInstallation'].touched && f['dateInstallation'].invalid"
+            class="mt-2 text-sm text-red-600"
+          >
+            <div *ngIf="f['dateInstallation'].errors?.['required']">
+              La date d'installation est requise
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Résumé -->
+      <div
+        *ngIf="f['type'].value && f['localisation'].value"
+        class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200"
+      >
+        <h4 class="font-medium text-blue-800 mb-3">Résumé des modifications</h4>
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <span class="text-2xl mr-3">{{ getTypeIcon(f['type'].value) }}</span>
+            <div>
+              <p class="font-medium text-blue-900">{{ f['type'].value }}</p>
+              <p class="text-sm text-blue-700">{{ getTypeDescription(f['type'].value) }}</p>
+            </div>
+          </div>
+          <div class="text-sm text-blue-700">
+            <p><span class="font-medium">Localisation :</span> {{ f['localisation'].value }}</p>
+            <p><span class="font-medium">État :</span> {{ f['etat'].value }}</p>
+            <p>
+              <span class="font-medium">Installation :</span>
+              {{ f['dateInstallation'].value | date : 'dd/MM/yyyy' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div
+        class="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t"
+      >
+        <!-- Bouton Supprimer -->
+        <button
+          type="button"
+          (click)="onDelete()"
+          class="px-6 py-3 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition font-medium flex items-center justify-center"
+          [disabled]="isLoading"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          Supprimer
+        </button>
+
+        <!-- Boutons Annuler et Enregistrer -->
+        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+            [disabled]="isLoading"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            [disabled]="capteurForm.invalid || isLoading || parcelles.length === 0"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            <svg
+              *ngIf="isLoading"
+              class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            {{ isLoading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

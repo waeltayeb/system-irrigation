@@ -1,0 +1,324 @@
+<app-navbar></app-navbar>
+<div class="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Gestion des Irrigations</h1>
+          <p class="text-gray-600 mt-2">Planifiez et surveillez les sessions d'irrigation</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+          <button 
+            class="inline-flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+            (click)="loadData()"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Actualiser
+          </button>
+        </div>
+      </div>
+    </div>
+
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex items-center">
+      <div class="bg-blue-100 p-3 rounded-lg mr-4">
+        <span class="text-2xl">📋</span>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Total</p>
+        <p class="text-2xl font-bold">{{ stats.total }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex items-center">
+      <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+        <span class="text-2xl">🚰</span>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">En cours</p>
+        <p class="text-2xl font-bold">{{ stats.enCours }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex items-center">
+      <div class="bg-green-100 p-3 rounded-lg mr-4">
+        <span class="text-2xl">✅</span>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Terminées</p>
+        <p class="text-2xl font-bold">{{ stats.terminees }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex items-center">
+      <div class="bg-cyan-100 p-3 rounded-lg mr-4">
+        <span class="text-2xl">💧</span>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Volume total</p>
+        <p class="text-2xl font-bold">{{ stats.volumeTotal | number:'1.0-0' }} L</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Filtres -->
+    <div class="bg-white rounded-xl shadow mb-6 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filtre par statut -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+          <select 
+            [(ngModel)]="statutFilter"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ALL">Tous les statuts</option>
+$
+            <option [value]="StatutIrrigation.EN_COURS">En cours</option>
+            <option [value]="StatutIrrigation.TERMINEE">Terminée</option>
+          </select>
+        </div>
+
+
+        <!-- Filtre par date -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+          <input
+            type="date"
+            [(ngModel)]="searchDate"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm text-gray-500">
+          {{ filteredIrrigations.length }} irrigation(s) trouvée(s)
+        </div>
+        <button 
+          (click)="resetFilters()"
+          class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </div>
+
+    <!-- Après les filtres, avant le tableau -->
+<div class="bg-white rounded-xl shadow mb-6 p-4">
+  <h3 class="text-lg font-semibold text-gray-800 mb-3">Vue par parcelle</h3>
+  
+  <!-- Boutons pour chaque parcelle -->
+  <div class="flex flex-wrap gap-2">
+    <button 
+      (click)="loadData()"
+      class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+    >
+      Toutes les parcelles
+    </button>
+    
+    <button 
+      *ngFor="let parcelle of parcelles"
+      (click)="loadIrrigationsForParcelle(parcelle.id)"
+      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+    >
+      {{ parcelle.nom }}
+    </button>
+  </div>
+  
+  <p class="text-sm text-gray-500 mt-3">
+    Cliquez sur une parcelle pour voir uniquement ses irrigations
+  </p>
+</div>
+
+    <!-- Tableau des irrigations -->
+    <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+      <!-- En-tête du tableau -->
+      <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+          <div class="col-span-2">Statut</div>
+          <div class="col-span-3">Parcelle & Détails</div>
+          <div class="col-span-3">Programmation</div>
+          <div class="col-span-2">Ressources</div>
+          <div class="col-span-2 text-right">Actions</div>
+        </div>
+      </div>
+
+      <!-- Message de chargement -->
+      <div *ngIf="isLoading" class="p-8 text-center">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="mt-2 text-gray-600">Chargement des irrigations...</p>
+      </div>
+
+      <!-- Message si aucune irrigation -->
+      <div *ngIf="!isLoading && irrigations.length === 0" class="p-8 text-center">
+        <span class="text-4xl mb-4 block">💧</span>
+        <h3 class="text-lg font-medium text-gray-900">Aucune irrigation trouvée</h3>
+        <p class="text-gray-600 mt-1">Aucune session d'irrigation n'a été enregistrée</p>
+      </div>
+
+      <!-- Liste des irrigations -->
+      <div *ngIf="!isLoading && irrigations.length > 0">
+        <div *ngFor="let irrigation of filteredIrrigations" 
+             class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition">
+          <div class="grid grid-cols-12 gap-4 items-center">
+            <!-- Statut -->
+            <div class="col-span-2">
+              <div class="flex items-center">
+                <span class="text-2xl mr-2">{{ getStatusIcon(irrigation.statut) }}</span>
+                <span [class]="'px-3 py-1 rounded-full text-xs font-medium ' + getStatusColor(irrigation.statut)">
+                  {{ irrigation.statut }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Parcelle et Détails -->
+            <div class="col-span-3">
+              <div>
+                <h3 class="font-medium text-gray-900">{{ getParcelleName(irrigation.parcelleId) }}</h3>
+                <p class="text-sm text-gray-500 mt-1">ID: {{ irrigation.id }}</p>
+                <p class="text-sm text-gray-500">Parcelle #{{ irrigation.parcelleId }}</p>
+              </div>
+            </div>
+
+            <!-- Programmation -->
+            <div class="col-span-3">
+              <div class="space-y-2">
+                <div>
+                  <p class="text-sm font-medium text-gray-700">Début</p>
+                  <p class="text-gray-900">{{ formatDateTime(irrigation.dateDebut) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-700">Durée</p>
+                  <p class="text-gray-900">{{ formatDuration(irrigation.duree) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ressources -->
+            <div class="col-span-2">
+              <div class="space-y-2">
+                <div>
+                  <p class="text-sm font-medium text-gray-700">Volume d'eau</p>
+                  <p class="text-gray-900 font-semibold">{{ irrigation.volumeEau }} L</p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-700">Débit estimé</p>
+                  <p class="text-gray-900">{{ (irrigation.volumeEau / irrigation.duree * 60) | number:'1.1-1' }} L/h</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-span-2 text-right">
+              <div class="flex justify-end space-x-2">
+                <!-- Barre de progression pour EN_COURS -->
+                <div *ngIf="irrigation.statut === StatutIrrigation.EN_COURS" class="w-full">
+                  <div class="mb-2">
+                    <div class="text-xs text-gray-500 mb-1">Progression</div>
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-green-500 transition-all duration-300"
+                           [style.width.%]="getProgressPercentage(irrigation)">
+                      </div>
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1 text-center">
+                      {{ getProgressPercentage(irrigation) }}%
+                    </div>
+                  </div>
+                  <button
+                    (click)="stopIrrigation(irrigation.id!)"
+                    class="w-full px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition"
+                  >
+                    Arrêter
+                  </button>
+                </div>
+
+
+
+                <!-- Aucune action pour TERMINEE -->
+                <span *ngIf="irrigation.statut === StatutIrrigation.TERMINEE"
+                  class="text-sm text-gray-400 italic"
+                >
+                  Terminée
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphique de répartition -->
+    <div *ngIf="!isLoading && irrigations.length > 0" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Répartition par statut -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition par statut</h3>
+        <div class="space-y-4">
+          <div *ngFor="let statut of getAllStatuts()">
+            <div class="flex justify-between mb-1">
+              <div class="flex items-center">
+                <span class="mr-2">{{ getStatusIcon(statut) }}</span>
+                <span class="text-sm text-gray-600">{{ statut }}</span>
+              </div>
+              <span class="text-sm font-medium">
+                {{ getCountByStatut(statut) }}
+              </span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div [class]="'h-full rounded-full ' + getStatusColor(statut).split(' ')[0]"
+                   [style.width.%]="getPercentageByStatut(statut)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consommation d'eau -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Consommation d'eau</h3>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Total consommé</span>
+              <span class="text-sm font-medium">{{ getFilteredVolumeTotal() | number:'1.0-0' }} L</span>
+            </div>
+            <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-cyan-500"
+                   [style.width.%]="100">
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Moyenne par session</span>
+              <span class="text-sm font-medium">
+                {{ getAverageVolume() | number:'1.0-0' }} L
+              </span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm text-gray-600">Durée moyenne</span>
+              <span class="text-sm font-medium">
+                {{ getAverageDuration() | number:'1.0-0' }} min
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,117 @@
+<nav class="bg-white shadow-lg border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Barre de navigation principale -->
+    <div class="flex justify-between h-16">
+      <!-- Logo et titre -->
+      <div class="flex items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <span class="text-2xl mr-2">🌱</span>
+          <div>
+            <h1 class="text-xl font-bold text-gray-900">Smart Irrigation</h1>
+            <p class="text-xs text-gray-500 hidden sm:block">Système de gestion intelligente</p>
+          </div>
+        </div>
+        
+        <!-- Navigation desktop -->
+        <div class="hidden md:ml-10 md:flex md:space-x-1">
+          <a *ngFor="let item of navItems"
+             [routerLink]="item.path"
+             routerLinkActive="bg-blue-50 text-blue-700 border-blue-500"
+             [routerLinkActiveOptions]="{exact: false}"
+             class="ml-4 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-transparent hover:bg-gray-50 hover:text-gray-900 flex items-center group relative"
+             (click)="closeMenu()">
+            <span class="text-lg mr-2">{{ item.icon }}</span>
+            {{ item.label }}
+            
+            <!-- Tooltip au survol -->
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block">
+              <div class="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                {{ item.description }}
+                <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Indicateur de page actuelle (mobile) -->
+      <div class="md:hidden flex items-center">
+        <span class="text-gray-700 font-medium">
+          {{ getCurrentPageLabel() }}
+        </span>
+      </div>
+
+      <!-- Bouton menu mobile -->
+      <div class="flex items-center md:hidden">
+        <button 
+          type="button"
+          (click)="toggleMenu()"
+          class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+          aria-expanded="false"
+        >
+          <span class="sr-only">Ouvrir le menu</span>
+          <!-- Icone hamburger -->
+          <svg *ngIf="!isMenuOpen" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          <!-- Icone croix -->
+          <svg *ngIf="isMenuOpen" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Informations système (desktop) -->
+      <div class="hidden md:flex md:items-center md:space-x-4">
+        <div class="text-sm text-gray-500">
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            <span>Système actif</span>
+          </div>
+        </div>
+        <div class="h-6 w-px bg-gray-300"></div>
+        <button 
+          class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+          (click)="goTo(currentRoute)"
+        >
+          Rafraîchir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu mobile -->
+  <div *ngIf="isMenuOpen" class="md:hidden border-t border-gray-200">
+    <div class="px-2 pt-2 pb-3 space-y-1">
+      <a *ngFor="let item of navItems"
+         [routerLink]="item.path"
+         routerLinkActive="bg-blue-50 text-blue-700 border-blue-500"
+         [routerLinkActiveOptions]="{exact: false}"
+         class="block px-3 py-3 rounded-lg text-base font-medium transition-all duration-200 border border-transparent hover:bg-gray-50 hover:text-gray-900 flex items-center"
+         (click)="closeMenu()">
+        <span class="text-xl mr-3">{{ item.icon }}</span>
+        <div>
+          <div class="font-medium">{{ item.label }}</div>
+          <div class="text-xs text-gray-500 mt-1">{{ item.description }}</div>
+        </div>
+      </a>
+      
+      <!-- Footer mobile -->
+      <div class="pt-4 pb-3 border-t border-gray-200 mt-2">
+        <div class="px-3 space-y-3">
+          <div class="flex items-center text-sm text-gray-500">
+            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            <span>Système d'irrigation actif</span>
+          </div>
+          <button 
+            class="w-full px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+             (click)="goTo('/dashboard'); closeMenu()"
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+

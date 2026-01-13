@@ -1,0 +1,50 @@
+/* Ajoutez ces styles si nécessaire */
+:host {
+  display: block;
+}
+
+/* Animation pour les messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bg-green-50, .bg-red-50, .bg-yellow-50 {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Style pour les radios sélectionnés */
+input[type="radio"]:checked + label {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Style pour les parcelles sélectionnées */
+input[type="radio"]:checked + label .rounded-full {
+  border-color: #3b82f6;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

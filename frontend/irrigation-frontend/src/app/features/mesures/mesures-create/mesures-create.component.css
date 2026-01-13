@@ -1,0 +1,64 @@
+/* Styles personnalisés */
+:host {
+  display: block;
+}
+
+/* Animation pour la barre de progression */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Style pour l'indicateur de plage */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Style pour les badges de statut */
+.bg-green-100.text-green-800 {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.bg-yellow-100.text-yellow-800 {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.bg-red-100.text-red-800 {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Animation pour les messages */
+.bg-green-50, .bg-red-50 {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,390 @@
+<app-navbar></app-navbar>
+
+<div class="min-h-screen bg-gray-50 pt-20 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- En-tête avec titre et bouton d'export -->
+    <div class="mb-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Mesures des Capteurs</h1>
+          <p class="text-gray-600 mt-1">Visualisez et analysez les données collectées par vos capteurs</p>
+        </div>
+        <button
+          (click)="exportToCSV()"
+          [disabled]="mesures.length === 0"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Exporter en CSV
+        </button>
+        <button
+  routerLink="/mesures/create"
+  class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+>
+  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+  </svg>
+  Nouvelle mesure
+</button>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="mb-8 bg-white shadow rounded-lg p-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filtre par capteur -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Capteur
+          </label>
+          <select
+  [(ngModel)]="capteurFilter"
+  (ngModelChange)="onCapteurChange()"
+  class="mt-1 block w-full"
+>
+  <option [ngValue]="'ALL'">Tous les capteurs</option>
+
+  <option
+    *ngFor="let capteur of capteurs"
+    [ngValue]="capteur.id"
+  >
+    {{ capteur.type }} - {{ capteur.localisation }} (ID: {{ capteur.id }})
+  </option>
+</select>
+
+        </div>
+
+        <!-- Filtre par type -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Type de capteur
+          </label>
+          <select
+            [(ngModel)]="typeFilter"
+            (ngModelChange)="currentPage = 1"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+          >
+            <option value="ALL">Tous les types</option>
+            <option [value]="TypeCapteur.HUMIDITE">Humidité 💧</option>
+            <option [value]="TypeCapteur.TEMPERATURE">Température 🌡️</option>
+          </select>
+        </div>
+
+        <!-- Filtre par date -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Date
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="dateFilter"
+            (ngModelChange)="currentPage = 1"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="mt-4 flex justify-between items-center">
+        <button
+          (click)="resetFilters()"
+          class="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded hover:bg-gray-50"
+        >
+          Réinitialiser les filtres
+        </button>
+        
+        <button
+          (click)="refreshMesures()"
+          [disabled]="isLoading"
+          class="px-3 py-2 text-sm text-blue-600 hover:text-blue-900 border border-blue-300 rounded hover:bg-blue-50 flex items-center"
+        >
+          <svg
+            [class.animate-spin]="isLoading"
+            class="w-4 h-4 mr-1"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Rafraîchir
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Dernière mesure -->
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-medium text-gray-500">Dernière mesure</h3>
+            <span *ngIf="derniereMesure" class="text-xs px-2 py-1 rounded-full" 
+                  [ngClass]="getTypeColor(getSelectedCapteur()?.type || TypeCapteur.HUMIDITE)">
+              {{ getSelectedCapteur()?.type || 'N/A' }}
+            </span>
+          </div>
+          <div *ngIf="isDerniereLoading" class="mt-2">
+            <div class="animate-pulse h-6 bg-gray-200 rounded w-3/4"></div>
+          </div>
+          <div *ngIf="!isDerniereLoading && derniereMesure" class="mt-2">
+            <div class="text-2xl font-bold text-gray-900">
+              {{ derniereMesure.valeur }} {{ getValueUnit(derniereMesure.capteurId) }}
+            </div>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ formatDateTime(derniereMesure.dateMesure) }}
+            </p>
+          </div>
+          <div *ngIf="!isDerniereLoading && !derniereMesure && selectedCapteurId" class="mt-2">
+            <p class="text-gray-500 italic">Aucune mesure disponible</p>
+          </div>
+          <div *ngIf="!isDerniereLoading && !selectedCapteurId" class="mt-2">
+            <p class="text-gray-500 italic">Sélectionnez un capteur</p>
+          </div>
+        </div>
+
+        <!-- Mesures totales -->
+        <div class="bg-white rounded-lg shadow p-4">
+          <h3 class="text-sm font-medium text-gray-500">Mesures totales</h3>
+          <div class="mt-2">
+            <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ stats.dernieres24h }} dans les 24h
+            </p>
+          </div>
+        </div>
+
+        <!-- Moyenne -->
+        <div class="bg-white rounded-lg shadow p-4">
+          <h3 class="text-sm font-medium text-gray-500">Valeur moyenne</h3>
+          <div class="mt-2">
+            <div class="text-2xl font-bold text-gray-900">{{ stats.moyenne }}</div>
+            <p class="text-sm text-gray-500 mt-1">
+              Min: {{ stats.min }} / Max: {{ stats.max }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Période -->
+        <div class="bg-white rounded-lg shadow p-4">
+          <h3 class="text-sm font-medium text-gray-500">Période couverte</h3>
+          <div class="mt-2">
+            <div class="text-2xl font-bold text-gray-900">{{ stats.periodeCouverture }}</div>
+            <p class="text-sm text-gray-500 mt-1">
+              Dernière: {{ stats.derniereMesureTime }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des mesures -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <!-- En-tête du tableau -->
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              Historique des mesures
+            </h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+              {{ filteredMesures.length }} mesure(s) trouvée(s)
+            </p>
+          </div>
+          <div class="text-sm text-gray-500">
+            Page {{ currentPage }} sur {{ totalPages }}
+          </div>
+        </div>
+      </div>
+      <!-- Dans votre liste de mesures (mesures.component.html) -->
+
+
+
+
+      <!-- Contenu -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID
+              </th>
+              <th *ngIf="!selectedCapteurId" scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Capteur
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Valeur
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Heure
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- État de chargement -->
+            <tr *ngIf="isLoading">
+              <td colspan="5" class="px-6 py-8 text-center">
+                <div class="flex flex-col items-center">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                  <span class="text-gray-500">Chargement des mesures...</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Aucune mesure -->
+            <tr *ngIf="!isLoading && filteredMesures.length === 0">
+              <td colspan="5" class="px-6 py-8 text-center">
+                <div class="flex flex-col items-center">
+                  <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-gray-500">Aucune mesure trouvée</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Liste des mesures -->
+            <tr *ngFor="let mesure of paginatedMesures" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ mesure.id }}
+              </td>
+              <td *ngIf="!selectedCapteurId" class="px-6 py-4 whitespace-nowrap">
+  <div class="flex items-center">
+    <span class="text-xl mr-2">{{ getCapteurTypeIcon(mesure.capteurId) }}</span>
+    <div>
+      <div class="text-sm font-medium text-gray-900">
+        {{ getCapteurName(mesure.capteurId) }}
+      </div>
+      <div class="text-xs text-gray-500">
+        ID: {{ mesure.capteurId }}
+      </div>
+    </div>
+  </div>
+</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium" [ngClass]="getValueColor(mesure)">
+                  {{ mesure.valeur }} {{ getValueUnit(mesure.capteurId) }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatDate(mesure.dateMesure) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatTime(mesure.dateMesure) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && filteredMesures.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          >
+            Précédent
+          </button>
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          >
+            Suivant
+          </button>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Affichage de
+              <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+              à
+              <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, filteredMesures.length) }}</span>
+              sur
+              <span class="font-medium">{{ filteredMesures.length }}</span>
+              résultats
+            </p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                (click)="previousPage()"
+                [disabled]="currentPage === 1"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <span class="sr-only">Précédent</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <button
+                *ngFor="let page of [].constructor(totalPages); let i = index"
+                (click)="goToPage(i + 1)"
+                [class]="currentPage === i + 1 
+                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
+              >
+                {{ i + 1 }}
+              </button>
+              
+              <button
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <span class="sr-only">Suivant</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiques avancées -->
+    <div *ngIf="!isLoading && filteredMesures.length > 0" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Écart-type -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Variabilité des données</h3>
+        <div class="text-lg font-medium text-gray-900">
+          Écart-type: {{ stats.ecartType }}
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          Indique la dispersion des mesures autour de la moyenne
+        </p>
+      </div>
+
+      <!-- Fréquence moyenne -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Fréquence de mesure</h3>
+        <div class="text-lg font-medium text-gray-900">
+          {{ stats.moyenneParJour }} mesures/jour
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          Moyenne quotidienne de mesures
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
