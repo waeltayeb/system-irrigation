@@ -6,12 +6,15 @@ import { Parcelle } from '../../shared/models/parcelle.model';
 import { CreateMesureDto, Mesure } from '../../shared/models/mesure.model';
 import { MesureCourante } from '../../shared/models/mesure.model';
 import { ActionIrrigation, StatutIrrigation  } from '../../shared/models/irrigation.model';
+import { environment } from '../../../environments/environment';
+
+console.log(environment.apiURL);  // Affichera l'URL de l'API en fonction de l'environnement configuré
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:8222/api';
+  private apiUrl = environment.apiURL;
 
   constructor(private http: HttpClient) {}
 
