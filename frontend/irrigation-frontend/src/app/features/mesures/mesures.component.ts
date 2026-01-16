@@ -7,6 +7,8 @@ import { Mesure } from '../../shared/models/mesure.model';
 import { Capteur, TypeCapteur } from '../../shared/models/capteur.model';
 import { ChangeDetectorRef } from '@angular/core';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { AlertService } from '../../core/services/alert/alert.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-mesures',
@@ -56,15 +58,36 @@ mesures: Mesure[] = [];
   Math = Math;
   TypeCapteur = TypeCapteur;
 
+      alerts: string[] = [];
+  
+    private subscriptions = new Subscription();
+
   constructor(
     private apiService: ApiService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
     this.loadCapteurs();
     this.loadAllMesures();
+        // Connexion WebSocket
+    this.alertService.connect();
 
+    // S'abonner aux alertes
+    this.subscriptions.add(
+      this.alertService.subscribe((msg: string) => {
+        this.alerts.unshift(msg); // Ajoute la nouvelle alerte
+         this.cd.detectChanges();
+      })
+    );
+
+  }
+
+    ngOnDestroy(): void {
+    // Déconnexion WebSocket et unsubscribe
+    this.subscriptions.unsubscribe();
+    this.alertService.disconnect();
   }
 
   loadCapteurs(): void {

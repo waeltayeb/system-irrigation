@@ -7,6 +7,8 @@ import { ActionIrrigation, StatutIrrigation } from '../../shared/models/irrigati
 import { Parcelle } from '../../shared/models/parcelle.model';
 import { ChangeDetectorRef } from '@angular/core';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { AlertService } from '../../core/services/alert/alert.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-irrigation',
@@ -37,14 +39,30 @@ export class IrrigationComponent implements OnInit {
   // Exposer les objets globaux
   Math = Math;
   StatutIrrigation = StatutIrrigation;
+        alerts: string[] = [];
+  
+    private subscriptions = new Subscription();
 
   constructor(
     private apiService: ApiService,
     private cd: ChangeDetectorRef,
+    private alertService: AlertService
+
   ) {}
 
   ngOnInit(): void {
     this.loadData();
+     // Connexion WebSocket
+    this.alertService.connect();
+
+    // S'abonner aux alertes
+    this.subscriptions.add(
+      this.alertService.subscribe((msg: string) => {
+        this.alerts.unshift(msg); // Ajoute la nouvelle alerte
+         this.cd.detectChanges();
+      })
+    );
+
   }
 
   loadData(): void {

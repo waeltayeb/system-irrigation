@@ -6,6 +6,8 @@ import { ApiService } from '../../../core/services/api.service';
 import { Parcelle } from '../../../shared/models/parcelle.model';
 import { ChangeDetectorRef } from '@angular/core';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { AlertService } from '../../../core/services/alert/alert.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-parcelles',
@@ -25,14 +27,34 @@ export class ParcellesComponent implements OnInit {
   // Exposer Math au template
   Math = Math;
 
+    alerts: string[] = [];
+
+  private subscriptions = new Subscription();
+
   constructor(
     private parcelleService: ApiService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit(): void {
     this.loadParcelles();
+        // Connexion WebSocket
+    this.alertService.connect();
+
+    // S'abonner aux alertes
+    this.subscriptions.add(
+      this.alertService.subscribe((msg: string) => {
+        this.alerts.unshift(msg); // Ajoute la nouvelle alerte
+         this.cd.detectChanges();
+      })
+    );
+  }
+    ngOnDestroy(): void {
+    // Déconnexion WebSocket et unsubscribe
+    this.subscriptions.unsubscribe();
+    this.alertService.disconnect();
   }
 
   loadParcelles(): void {

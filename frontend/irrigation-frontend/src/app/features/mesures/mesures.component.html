@@ -1,6 +1,15 @@
 <app-navbar></app-navbar>
 
 <div class="min-h-screen bg-gray-50 pt-20 pb-8">
+  <!-- Alertes -->
+<div *ngIf="alerts.length > 0" class="mb-6">
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+    <h3 class="text-red-800 font-semibold mb-2">Alertes détectées</h3>
+    <div *ngFor="let alert of alerts" class="text-sm text-red-700">
+      • {{ alert }}
+    </div>
+  </div>
+</div>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- En-tête avec titre et bouton d'export -->
     <div class="mb-8">
