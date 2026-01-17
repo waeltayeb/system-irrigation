@@ -347,17 +347,14 @@ Les contributions sont les bienvenues !
 4. Push (`git push origin feature/AmazingFeature`)
 5. Ouvrez une Pull Request
 
-### Remerciements
-- Spring Boot et Spring Cloud Teams
-- Apache Kafka Community
-- Angular Team
-- Tous les contributeurs open-source
+
 
 ---
 
 
 
 **⭐ Si ce projet vous est utile, n'hésitez pas à mettre une étoile sur GitHub !**
+
 
 
 
