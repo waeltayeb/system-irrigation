@@ -1,0 +1,144 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: capteur_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+    networks:
+      - irrigation-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - irrigation-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - irrigation-net
+
+  config-server:
+    build:
+      context: ../backend/config-server
+      dockerfile: ../../docker/dockerfiles/config-server.Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - irrigation-net
+
+  eureka-server:
+    build:
+      context: ../backend/eureka-server
+      dockerfile: ../../docker/dockerfiles/eureka-server.Dockerfile
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    networks:
+      - irrigation-net
+
+  gateway-api:
+    build:
+      context: ../backend/gateway-service
+      dockerfile: ../../docker/dockerfiles/gateway-service.Dockerfile
+    ports:
+      - "8222:8222"
+    depends_on:
+      - config-server
+      - eureka-server
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    networks:
+      - irrigation-net
+
+  capteur-service:
+    build:
+      context: ../backend/capteur-service
+      dockerfile: ../../docker/dockerfiles/capteur-service.Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/capteur_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+    - "8081:8081"
+    networks:
+      - irrigation-net
+
+  irrigation-service:
+    build:
+      context: ../backend/irrigation-service
+      dockerfile: ../../docker/dockerfiles/irrigation-service.Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/irrigation_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+    - "8082:8082"
+    networks:
+      - irrigation-net
+
+  frontend:
+    build:
+      context: ../frontend/irrigation-frontend
+      dockerfile: ../../docker/dockerfiles/angular.Dockerfile
+    ports:
+      - "4200:80"
+    networks:
+      - irrigation-net
+
+volumes:
+  mysql_data:
+
+networks:
+  irrigation-net:
+    driver: bridge
