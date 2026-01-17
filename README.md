@@ -339,13 +339,7 @@ docker system prune -a
 Ce projet est à but **pédagogique et académique**. 
 Utilisation libre pour l'apprentissage et les démonstrations.
 
-### Contribution
-Les contributions sont les bienvenues ! 
-1. Fork le projet
-2. Créez une branche (`git checkout -b feature/AmazingFeature`)
-3. Committez vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push (`git push origin feature/AmazingFeature`)
-5. Ouvrez une Pull Request
+
 
 
 
@@ -354,6 +348,7 @@ Les contributions sont les bienvenues !
 
 
 **⭐ Si ce projet vous est utile, n'hésitez pas à mettre une étoile sur GitHub !**
+
 
 
 
