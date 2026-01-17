@@ -52,7 +52,7 @@ Le **Smart Irrigation System** est une application distribuée qui permet :
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│  API Gateway    │ http://localhost:8080
+│  API Gateway    │ http://localhost:8222
 │ (Spring Gateway)│
 └────────┬────────┘
          │
@@ -131,7 +131,6 @@ system-irrigation/
 │       └── package.json
 ├── docker/                    # Configuration Docker
 │   ├── docker-compose.yml
-│   ├── docker-compose-infra.yml
 │   └── dockerfiles/                     
 └── README.md
 ```
@@ -148,11 +147,11 @@ system-irrigation/
 - Monitoring des instances
 - **Dashboard**: http://localhost:8761
 
-### 3. **API Gateway** (`:8080`)
+### 3. **API Gateway** (`:8222`)
 - Point d'entrée unique
 - Routage dynamique
 - Gestion CORS
-- **URL**: http://localhost:8080
+- **URL**: http://localhost:8222
 
 ### 4. **Capteur Service** (`:8081`)
 - Gestion CRUD des capteurs
@@ -178,7 +177,7 @@ system-irrigation/
 
 ## 🌐 API Endpoints
 
-### Via API Gateway (`http://localhost:8080`)
+### Via API Gateway (`http://localhost:8222`)
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
@@ -320,7 +319,7 @@ npm test
 
 ### URLs d'Accès
 - **Eureka Dashboard**: http://localhost:8761
-- **API Gateway**: http://localhost:8080
+- **API Gateway**: http://localhost:8222
 - **Frontend**: http://localhost:4200
 - **Actuator Endpoints**: http://localhost:8081/actuator/health
 
@@ -339,7 +338,7 @@ docker compose logs --timestamps
 1. **Ports déjà utilisés**
    ```bash
    # Vérifier les ports
-   netstat -tulpn | grep :8080
+   netstat -tulpn | grep :8222
    
    # Changer les ports dans .env
    ```
@@ -408,3 +407,4 @@ Les contributions sont les bienvenues !
 
 
 **⭐ Si ce projet vous est utile, n'hésitez pas à mettre une étoile sur GitHub !**
+
