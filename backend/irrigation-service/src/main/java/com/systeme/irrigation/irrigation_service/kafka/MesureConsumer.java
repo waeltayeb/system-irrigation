@@ -9,6 +9,7 @@ import com.systeme.irrigation.irrigation_service.Repositories.ParcelleRepository
 import com.systeme.irrigation.irrigation_service.dto.CapteurDTO;
 import com.systeme.irrigation.irrigation_service.dto.MesureDTO;
 import com.systeme.irrigation.irrigation_service.feign.CapteurClient;
+import com.systeme.irrigation.irrigation_service.services.AlertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +27,7 @@ public class MesureConsumer {
     private final ActionIrrigationRepository actionRepo;
     private final CapteurClient capteurClient;
     private final MesureCouranteRepository mesureRepo;
+    private final AlertService alertService;
 
     // ==================================================
     // CONSUMER KAFKA
@@ -77,7 +79,9 @@ public class MesureConsumer {
                     .ifPresent(action -> {
                         action.setStatut("TERMINEE");
                         actionRepo.save(action);
-                        System.out.println(" Irrigation arrêtée pour " + parcelle.getNom());
+                        String msg = " Irrigation arrêtée pour " + parcelle.getNom();
+                        System.out.println(msg);
+                        alertService.sendAlert(msg);
                     });
             return;
         }
@@ -102,7 +106,9 @@ public class MesureConsumer {
 
             actionRepo.save(action);
 
-            System.out.println(" Irrigation déclenchée pour " + parcelle.getNom());
+            String msg = " Irrigation déclenchée pour " + parcelle.getNom();
+            System.out.println(msg);
+            alertService.sendAlert(msg);
         }
     }
 
@@ -113,7 +119,10 @@ public class MesureConsumer {
 
         //  Température basse → pas d’irrigation
         if (temperature < 10) {
-            System.out.println("  Température basse, irrigation suspendue pour " + parcelle.getNom());
+
+            String msg = "Température basse, irrigation suspendue pour " + parcelle.getNom();
+            System.out.println(msg);
+            alertService.sendAlert(msg);
             return;
         }
 
@@ -123,7 +132,9 @@ public class MesureConsumer {
                     .ifPresent(action -> {
                         action.setDuree(action.getDuree() + 10);
                         actionRepo.save(action);
-                        System.out.println(" Température élevée, durée augmentée pour " + parcelle.getNom());
+                        String msg = "Température élevée, durée augmentée pour " + parcelle.getNom();
+                        System.out.println(msg);
+                        alertService.sendAlert(msg);
                     });
         }
     }
@@ -153,7 +164,10 @@ public class MesureConsumer {
             if (now.isAfter(fin)) {
                 action.setStatut("TERMINEE");
                 actionRepo.save(action);
-                System.out.println(" Irrigation terminée automatiquement pour parcelle " + action.getParcelleId());
+
+                String msg = " Irrigation terminée automatiquement pour parcelle " + action.getParcelleId();
+                System.out.println(msg);
+                alertService.sendAlert(msg);
             }
         }
     }

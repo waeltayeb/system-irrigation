@@ -22,4 +22,23 @@ public class CapteurController {
     public List<Capteur> getAll() {
         return service.findAll();
     }
+
+    @GetMapping("/{id}")
+    public Capteur getById(@PathVariable Long id) {
+        return service.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Capteur update(
+            @PathVariable Long id,
+            @RequestBody Capteur c
+    ) {
+        return service.update(id, c);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+
 }

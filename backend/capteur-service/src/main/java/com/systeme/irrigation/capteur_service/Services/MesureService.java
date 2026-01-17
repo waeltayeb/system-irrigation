@@ -33,4 +33,7 @@ public class MesureService {
     public Mesure getDerniereMesure(Long capteurId) {
         return mesureRepository.findTopByCapteurIdOrderByDateMesureDesc(capteurId);
     }
+    public List<Mesure> findAll() {
+        return mesureRepository.findAll();
+    }
 }

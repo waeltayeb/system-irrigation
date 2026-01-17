@@ -1,6 +1,8 @@
 server:
   port: 8222
 spring:
+  application:
+    name: gateway-service
   cloud:
     gateway:
       server:
@@ -27,6 +29,26 @@ spring:
               uri: lb://CAPTEUR-SERVICE
               predicates:
                 - Path=/api/capteurs/**
+            - id: irrigation-service
+              uri: lb://IRRIGATION-SERVICE
+              predicates:
+                - Path=/api/parcelles/**
+            - id: capteur-service
+              uri: lb://CAPTEUR-SERVICE
+              predicates:
+                - Path=/api/mesures/**
+            - id: irrigation-service
+              uri: lb://IRRIGATION-SERVICE
+              predicates:
+                - Path=/api/irrigations/**
 eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka
+  registry-fetch-interval-seconds: 10
+  initial-instance-info-replication-interval-seconds: 10
   instance:
-    hostname: localhost
+    prefer-ip-address: true
+

@@ -1,5 +1,6 @@
 package com.systeme.irrigation.capteur_service.Controllers;
 
+import com.systeme.irrigation.capteur_service.Entities.Capteur;
 import com.systeme.irrigation.capteur_service.Entities.Mesure;
 import com.systeme.irrigation.capteur_service.Services.MesureService;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +28,9 @@ public class MesureController {
     @GetMapping("/capteur/{capteurId}/last")
     public Mesure getLast(@PathVariable Long capteurId) {
         return mesureService.getDerniereMesure(capteurId);
+    }
+    @GetMapping
+    public List<Mesure> getAll() {
+        return mesureService.findAll();
     }
 }

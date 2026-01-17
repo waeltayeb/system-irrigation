@@ -1,5 +1,7 @@
 spring:
   application:
     name: irrigation-service
-  config:
-    import: optional:configserver:http://localhost:8888
+
+  cloud:
+    config:
+      uri: http://config-server:8888
