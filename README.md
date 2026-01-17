@@ -263,57 +263,8 @@ ng serve
 ng build --prod
 ```
 
-### Variables d'environnement
-```bash
-# Exemple .env
-SPRING_PROFILES_ACTIVE=dev
-EUREKA_SERVER_URL=http://localhost:8761/eureka
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-```
 
-## ☸️ Kubernetes (Optionnel)
 
-### Prérequis
-- Minikube ou cluster Kubernetes
-- kubectl configuré
-- Helm (optionnel)
-
-### Déploiement
-```bash
-# Appliquer les manifests
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secrets.yaml
-kubectl apply -f k8s/ -R
-
-# Vérifier le déploiement
-kubectl get all -n irrigation-system
-
-# Accéder à l'application
-minikube service gateway-service -n irrigation-system
-```
-
-## 🧪 Tests
-
-### Tests Unitaires
-```bash
-# Backend
-cd backend/capteur-service
-./mvnw test
-
-# Frontend
-cd frontend/irrigation-ui
-npm test
-```
-
-### Tests d'Intégration
-```bash
-# Lancer la suite de tests
-./scripts/run-tests.sh
-
-# Tests avec Postman
-# Collection disponible dans /docs/postman/
-```
 
 ## 🔍 Monitoring et Debugging
 
@@ -407,5 +358,6 @@ Les contributions sont les bienvenues !
 
 
 **⭐ Si ce projet vous est utile, n'hésitez pas à mettre une étoile sur GitHub !**
+
 
 
