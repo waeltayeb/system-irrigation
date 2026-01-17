@@ -382,7 +382,7 @@ docker system prune -a
 ### Auteur
 - **Nom**: Wael Taieb
 - **GitHub**: [@waeltayeb](https://github.com/waeltayeb)
-- **Email**: wael.tayeb@example.com
+- **Email**: waeltaieb07@gmail.com
 
 ### Licence
 Ce projet est à but **pédagogique et académique**. 
@@ -407,4 +407,5 @@ Les contributions sont les bienvenues !
 
 
 **⭐ Si ce projet vous est utile, n'hésitez pas à mettre une étoile sur GitHub !**
+
 
